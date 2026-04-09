@@ -1,0 +1,10 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "synopsis-agent": "./src/agent.py:agent"
+  },
+  "env": ".env",
+  "store": { "path": "./src/store.py:generate_store" },
+  "checkpointer": { "path": "./src/checkpointer.py:generate_checkpointer" },
+  "image_distro": "wolfi"
+}
