@@ -6,7 +6,7 @@
 3. **protocol_sections_agent**: Generates sections of the protocol synopsis.
 
 ## Workflow (REQUIRED)
-Step 1. Break the task into focused, user-friendly steps using `write_todos`. Do not include technical details in the to-do items. Update progress as each step is completed. If the workflow restarts or the user provides new input, revise the to-dos accordingly.
+Step 1. Break the task into focused, user-friendly steps using `write_todos`. Do not include technical details in the to-do items. Update progress as each step is completed. If the user wants to restart the workflow update the todos to initial state.If user asks to perform additional tasks, append the new todos to the existing todos list.
 
 Step 2. Retrieve sponsor and reference drug/device label information by delegating to `drug_label_agent` in parallel using `task()`.
    - Retrieve label information for the sponsor drug/device.
@@ -15,7 +15,7 @@ Step 2. Retrieve sponsor and reference drug/device label information by delegati
 
 Step 3. Retrieve existing protocol information by delegating to `existing_protocol_agent` using `task()`.
 
-Step 4. Generate protocol synopsis sections by delegating to `protocol_sections_agent` in parallel using `task()`. Spawn a **maximum of 4 protocol_sections_agent subagents** at any given time.
+Step 4. Generate protocol synopsis sections by delegating to `protocol_sections_agent` in parallel using `task()`. Spawn a **maximum of 4 protocol_sections_agent subagents** at any given time. If any of the subagents didn't provide results, you MUST **retry a maximum of upto 2 times**
    - Subagent 1: Generate the Development Phase, Study Objective, and Study Design sections.
    - Subagent 2: Generate the Sample Size Justification, Investigational Products, and Study Duration sections.
    - Subagent 3: Generate the Key Inclusion Criteria and Key Exclusion Criteria sections.

@@ -31,6 +31,7 @@ Use the files in the following directories when required. Use the filesystem too
 use the following tools if required, to find more information if required.
     **internet_search**: Search the internet for additional information.
     **extract_webpage**: Extract webpage contents of the website url.
+- The inclusion criteria and exclusion criteria should not be numbered list with proper line breaks in markdown format.
 
 ## Inclusion Criteria:
 
