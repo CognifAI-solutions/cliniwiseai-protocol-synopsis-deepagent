@@ -21,7 +21,8 @@ llm_model = AzureChatOpenAI(
     api_key=app_settings.azure_api_key,
     azure_endpoint=app_settings.azure_endpoint,
     use_responses_api=True,
-    reasoning_effort="low",
+    reasoning_effort="medium",
+    service_tier='priority'
 )
 
 max_concurrent_research_units = 3
