@@ -1,7 +1,8 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "synopsis-agent": "./src/agent.py:agent"
+    "synopsis-agent": "./src/agent.py:synopsis_agent",
+    "article-agent":"./src/agent.py:article_agent"
   },
   "env": ".env",
   "store": { "path": "./src/store.py:generate_store" },

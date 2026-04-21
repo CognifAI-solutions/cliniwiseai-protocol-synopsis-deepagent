@@ -17,20 +17,20 @@ async def generate_store():
     async with AsyncPostgresStore.from_conn_string(app_settings.db_url) as store:
         await store.setup()
 
-        skills_dir = Path(__file__).parent / "skills"
-        for skill_file in skills_dir.rglob("SKILL.md"):
+        synopsis_skills_dir = Path(__file__).parent / "synopsis_agent/skills"
+        for skill_file in synopsis_skills_dir.rglob("SKILL.md"):
             skill_content = skill_file.read_text()
-            store_key = f"/skills/{skill_file.relative_to(skills_dir)}"
+            store_key = f"/skills/{skill_file.relative_to(synopsis_skills_dir)}"
             await store.aput(
-                namespace=("filesystem",),
+                namespace=("filesystem-synopsis",),
                 key=store_key,
                 value=create_file_data(skill_content),
             )
 
-        agent_content = (Path(__file__).parent / "AGENTS.md").read_text()
+        agent_content = (Path(__file__).parent / "synopsis_agent/AGENTS.md").read_text()
 
         await store.aput(
-            namespace=("filesystem",),
+            namespace=("filesystem-synopsis",),
             key="/AGENTS.md",
             value=create_file_data(agent_content),
         )

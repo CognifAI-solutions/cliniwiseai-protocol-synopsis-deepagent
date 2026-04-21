@@ -3,16 +3,18 @@ from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
 from langchain_openai import AzureChatOpenAI
 from deepagents import create_deep_agent
 
-from src.prompts import (
+from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
+from src.article_agent.subagents import research_agent
+from src.synopsis_agent.prompts import (
     ROOT_AGENT_SYSTEM_PROMPT,
 )
-from src.subagents import (
+from src.synopsis_agent.subagents import (
     drug_label_agent,
     existing_protocol_agent,
     protocol_sections_agent,
 )
 from settings import app_settings
-from src.tools import think_tool, write_output
+from src.tools import generate_image, think_tool, write_output
 
 llm_model = AzureChatOpenAI(
     model="gpt-5.4",
@@ -22,33 +24,53 @@ llm_model = AzureChatOpenAI(
     azure_endpoint=app_settings.azure_endpoint,
     use_responses_api=True,
     reasoning_effort="medium",
-    service_tier='priority'
+    service_tier="priority",
 )
 
 max_concurrent_research_units = 3
 max_researcher_iterations = 3
 current_date = datetime.now().strftime("%Y-%m-%d")
 
-composite_backend = lambda rt: CompositeBackend(
+synopsis_composite_backend = lambda rt: CompositeBackend(
     default=StateBackend(rt),
     routes={
-        "/memories/": StoreBackend(rt, namespace=lambda ctx: ("filesystem",)),
+        "/memories/synopsis": StoreBackend(
+            rt, namespace=lambda ctx: ("filesystem-synopsis",)
+        ),
     },
 )
 
-agent = create_deep_agent(
+synopsis_agent = create_deep_agent(
     name="root_agent",
     model=llm_model,
     system_prompt=ROOT_AGENT_SYSTEM_PROMPT,
     tools=[write_output, think_tool],
     subagents=[drug_label_agent, existing_protocol_agent, protocol_sections_agent],
-    backend=composite_backend,
-    memory=["/memories/AGENTS.md"],
+    backend=synopsis_composite_backend,
+    memory=["/memories/synopsis/AGENTS.md"],
 )
 
-agent = agent.with_config({
-   'recursion_limit': 500
-})
+synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
+
+article_composite_backend = lambda rt: CompositeBackend(
+    default=StateBackend(rt),
+    routes={
+        "/memories/article": StoreBackend(
+            rt, namespace=lambda ctx: ("filesystem-article",)
+        ),
+    },
+)
+
+article_agent = create_deep_agent(
+    model=llm_model,
+    name="article_root_agent",
+    system_prompt=ARTICLE_SYSTEM_PROMPT,
+    backend=article_composite_backend,
+    subagents=[research_agent],
+    tools=[think_tool, generate_image],
+)
+
+article_agent = article_agent.with_config({"recursion_limit": 500})
 
 # messages: List[BaseMessage] = []
 # messages.append(HumanMessage(USER_INPUT))

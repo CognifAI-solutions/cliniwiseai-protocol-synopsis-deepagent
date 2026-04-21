@@ -10,6 +10,7 @@ from langchain.tools import ToolRuntime
 from langgraph.types import Command
 from deepagents.backends.utils import create_file_data
 from requests.exceptions import ConnectionError, Timeout
+from openai import AzureOpenAI
 
 from settings import app_settings
 
@@ -21,6 +22,13 @@ MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
 
 
+image_model = AzureOpenAI(
+    api_version="2025-04-01-preview",
+    api_key=app_settings.azure_api_key,
+    azure_endpoint=app_settings.azure_endpoint,
+)
+
+
 def _retry_tavily_call(func, *args, **kwargs):
     """Retry a Tavily API call with exponential backoff on transient network errors."""
     for attempt in range(1, MAX_RETRIES + 1):
@@ -29,10 +37,13 @@ def _retry_tavily_call(func, *args, **kwargs):
         except (ConnectionError, Timeout, OSError) as exc:
             if attempt == MAX_RETRIES:
                 raise
-            wait = RETRY_BACKOFF_BASE ** attempt
+            wait = RETRY_BACKOFF_BASE**attempt
             logger.warning(
                 "Tavily API call failed (attempt %d/%d): %s. Retrying in %ds...",
-                attempt, MAX_RETRIES, exc, wait,
+                attempt,
+                MAX_RETRIES,
+                exc,
+                wait,
             )
             time.sleep(wait)
 
@@ -83,8 +94,10 @@ def extract_webpage(
         if file_path and runtime:
 
             content = ""
-            for result in response['results']:
-                content += "Source: " + result['url'] + "\n\n" + result['raw_content'] + "\n"
+            for result in response["results"]:
+                content += (
+                    "Source: " + result["url"] + "\n\n" + result["raw_content"] + "\n"
+                )
                 content += "----------------------------------------\n"
             content = content.strip()
             file_data = create_file_data(content)
@@ -99,10 +112,56 @@ def extract_webpage(
                     ],
                 }
             )
-        return {"status":"success", "message":"File extracted and saved to the file system"}
+        return {
+            "status": "success",
+            "message": "File extracted and saved to the file system",
+        }
     except Exception as e:
         logger.error(f"Error extracting webpage: {e}")
-        return {"status":"error","message":f"Error extracting webpage: {e}"}
+        return {"status": "error", "message": f"Error extracting webpage: {e}"}
+
+
+@tool(parse_docstring=True)
+def generate_image(
+    prompt: str,
+    file_path: str,
+    runtime: ToolRuntime = None,
+):
+    """Generate Image and save it to filesystem
+
+    Args:
+        prompt: A very descriptive prompt about the image to be generated for the image generation model
+        file_path: Absolute path (starting with /) to save the extracted content to the filesystem.
+
+    Returns:
+        Dict with image operation result.
+        if successful: {"status":"success","message":"Image generated and saved to the file system"}
+        if failure: {"status":"error","message":f"Error generating image: {e}"}
+    """
+    try:
+        response = image_model.images.generate(
+            model="gpt-image-1.5",
+            prompt=prompt,
+            n=1,
+            quality="high",
+            output_format="png",
+        )
+        image_base64 = response.data[0].b64_json
+        file_data = create_file_data(content=image_base64, encoding="base64")
+        return Command(
+                update={
+                    "files": {file_path: file_data},
+                    "messages": [
+                        ToolMessage(
+                            content=f"Image saved to {file_path})",
+                            tool_call_id=runtime.tool_call_id,
+                        )
+                    ],
+                }
+            )
+    except Exception as e:
+        logger.error(f"Error generating image:{e}")
+        return {"status": "error", "message": f"Error generating image:{e}"}
 
 
 @tool(parse_docstring=True)
