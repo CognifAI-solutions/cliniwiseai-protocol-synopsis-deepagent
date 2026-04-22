@@ -1,8 +1,8 @@
 from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
-from langchain_openai import AzureChatOpenAI
 from deepagents import create_deep_agent
 
+from src.llm_models import llm_model
 from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
 from src.article_agent.subagents import research_agent
 from src.synopsis_agent.prompts import (
@@ -13,19 +13,8 @@ from src.synopsis_agent.subagents import (
     existing_protocol_agent,
     protocol_sections_agent,
 )
-from settings import app_settings
 from src.tools import generate_image, think_tool, write_output
 
-llm_model = AzureChatOpenAI(
-    model="gpt-5.4",
-    azure_deployment=app_settings.azure_deployment,
-    api_version="2025-04-01-preview",
-    api_key=app_settings.azure_api_key,
-    azure_endpoint=app_settings.azure_endpoint,
-    use_responses_api=True,
-    reasoning_effort="medium",
-    service_tier="priority",
-)
 
 max_concurrent_research_units = 3
 max_researcher_iterations = 3

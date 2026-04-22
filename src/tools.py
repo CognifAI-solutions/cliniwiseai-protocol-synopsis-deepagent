@@ -3,6 +3,7 @@ import json
 import time
 import logging
 from typing import List, Literal
+from openai import AzureOpenAI
 from tavily import TavilyClient
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
@@ -10,8 +11,9 @@ from langchain.tools import ToolRuntime
 from langgraph.types import Command
 from deepagents.backends.utils import create_file_data
 from requests.exceptions import ConnectionError, Timeout
-from openai import AzureOpenAI
 
+
+from src.llm_models import image_model
 from settings import app_settings
 
 logger = logging.getLogger(__name__)
@@ -20,13 +22,6 @@ tavily_client = TavilyClient(api_key=app_settings.tavily_api_key)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
-
-
-image_model = AzureOpenAI(
-    api_version="2025-04-01-preview",
-    api_key=app_settings.azure_api_key,
-    azure_endpoint=app_settings.azure_endpoint,
-)
 
 
 def _retry_tavily_call(func, *args, **kwargs):
@@ -139,26 +134,35 @@ def generate_image(
         if failure: {"status":"error","message":f"Error generating image: {e}"}
     """
     try:
-        response = image_model.images.generate(
-            model="gpt-image-1.5",
-            prompt=prompt,
-            n=1,
-            quality="high",
-            output_format="png",
+        client = AzureOpenAI(
+            api_key=app_settings.azure_api_key,
+            azure_endpoint=app_settings.azure_endpoint,
+            default_headers={"x-ms-oai-image-generation-deployment": "gpt-image-1.5"},
+            api_version="2025-04-01-preview",
         )
-        image_base64 = response.data[0].b64_json
+        response = client.responses.create(
+            model="gpt-5.4",
+            input=prompt,
+            tools=[{"type": "image_generation"}],
+        )
+        image_data = [
+            output.result
+            for output in response.output
+            if output.type == "image_generation_call"
+        ]
+        image_base64 = image_data[0]
         file_data = create_file_data(content=image_base64, encoding="base64")
         return Command(
-                update={
-                    "files": {file_path: file_data},
-                    "messages": [
-                        ToolMessage(
-                            content=f"Image saved to {file_path})",
-                            tool_call_id=runtime.tool_call_id,
-                        )
-                    ],
-                }
-            )
+            update={
+                "files": {file_path: file_data},
+                "messages": [
+                    ToolMessage(
+                        content=f"Image saved to {file_path})",
+                        tool_call_id=runtime.tool_call_id,
+                    )
+                ],
+            }
+        )
     except Exception as e:
         logger.error(f"Error generating image:{e}")
         return {"status": "error", "message": f"Error generating image:{e}"}

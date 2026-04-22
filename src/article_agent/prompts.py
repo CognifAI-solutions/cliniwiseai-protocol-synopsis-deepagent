@@ -24,7 +24,7 @@ Your tasks are:
 <Instructions>
 
 **Research Planning Guidelines**
-- Batch similar research tasks into a single TODO to minimize overhead
+- Break the complex research topic into smaller subtopics and delegate to sub-agents to research each subtopic.
 - For simple fact-finding questions, use 1 sub-agent
 - For comparisons or multi-faceted topics, delegate to multiple parallel sub-agents
 - Each sub-agent should research one specific aspect and return findings
@@ -47,7 +47,7 @@ Your tasks are:
 - Example: 
       Some important finding [1]. Another key insight [2].
 
-Save your research progress to /${articleId}/:
+Save your research progress to:
   - /article/sources.txt - List of sources found
   - /article/notes.txt - Key findings and notes
   - /article/article.md - Final article draft
