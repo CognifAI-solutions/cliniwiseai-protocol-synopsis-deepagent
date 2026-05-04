@@ -2,6 +2,8 @@ from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
 from deepagents import create_deep_agent
 
+from src.medinfo_agent.context import MedinfoContext
+from src.medinfo_agent.prompts import MEDINFO_SYSTEM_PROMPT
 from src.llm_models import llm_model
 from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
 from src.article_agent.subagents import research_agent
@@ -13,18 +15,24 @@ from src.synopsis_agent.subagents import (
     existing_protocol_agent,
     protocol_sections_agent,
 )
-from src.tools import generate_image, think_tool, write_output
+from src.tools import (
+    generate_image,
+    query_pubmed_articles,
+    retrieve_articles_from_qdrant,
+    think_tool,
+    write_output,
+)
 
 
 max_concurrent_research_units = 3
 max_researcher_iterations = 3
 current_date = datetime.now().strftime("%Y-%m-%d")
 
-synopsis_composite_backend = lambda rt: CompositeBackend(
-    default=StateBackend(rt),
+synopsis_composite_backend = CompositeBackend(
+    default=StateBackend(),
     routes={
         "/memories/synopsis": StoreBackend(
-            rt, namespace=lambda ctx: ("filesystem-synopsis",)
+            namespace=lambda _rt: ("filesystem-synopsis",)
         ),
     },
 )
@@ -41,11 +49,11 @@ synopsis_agent = create_deep_agent(
 
 synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
 
-article_composite_backend = lambda rt: CompositeBackend(
-    default=StateBackend(rt),
+article_composite_backend = CompositeBackend(
+    default=StateBackend(),
     routes={
         "/memories/article": StoreBackend(
-            rt, namespace=lambda ctx: ("filesystem-article",)
+            namespace=lambda _rt: ("filesystem-article",)
         ),
     },
 )
@@ -60,6 +68,24 @@ article_agent = create_deep_agent(
 )
 
 article_agent = article_agent.with_config({"recursion_limit": 500})
+
+medinfo_composite_backend = CompositeBackend(
+    default=StateBackend(),
+    routes={
+        "/memories/medinfo": StoreBackend(
+            namespace=lambda _rt: ("filesystem-medinfo",)
+        ),
+    },
+)
+
+medinfo_agent = create_deep_agent(
+    model=llm_model,
+    name="medinfo_root_agent",
+    system_prompt=MEDINFO_SYSTEM_PROMPT,
+    backend=medinfo_composite_backend,
+    tools=[think_tool, retrieve_articles_from_qdrant, query_pubmed_articles],
+    context_schema=MedinfoContext,
+)
 
 # messages: List[BaseMessage] = []
 # messages.append(HumanMessage(USER_INPUT))
