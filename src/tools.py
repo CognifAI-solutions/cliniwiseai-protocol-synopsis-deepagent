@@ -229,7 +229,7 @@ def write_output(markdown_content: str) -> str:
 
 
 @tool(parse_docstring=True)
-def retrieve_articles_from_qdrant(pmids: List[str], limit: int = 30) -> str:
+def retrieve_articles_from_qdrant(pmids: List[str]) -> str:
     """Retrieve documents from Qdrant collection based on PMIDs.
 
     Args:
@@ -247,19 +247,20 @@ def retrieve_articles_from_qdrant(pmids: List[str], limit: int = 30) -> str:
                 "message": "Collection not found",
                 "documents": None,
             }
-        documents = qdrant_client.scroll(
+        points, _next_offset = qdrant_client.scroll(
             collection_name=QDRANT_COLLECTION_NAME,
             scroll_filter=models.Filter(
                 must=[
                     models.FieldCondition(
-                        key="pmid", match=models.MatchAny(any=pmids)
+                        key="metadata.pmid", match=models.MatchAny(any=pmids)
                     ),
                 ]
             ),
-            limit=limit,
             with_payload=True,
             with_vectors=False,
         )
+        documents = [{"id": str(p.id), **(p.payload or {})} for p in points]
+        logger.info(f"Retrieved {len(documents)} documents from Qdrant")
         return {
             "status": "success",
             "message": "Documents retrieved successfully",
@@ -275,36 +276,35 @@ def retrieve_articles_from_qdrant(pmids: List[str], limit: int = 30) -> str:
 
 
 @tool(parse_docstring=True)
-def query_pubmed_articles(
-    runtime: ToolRuntime[MedinfoContext], query: str, limit: int = 30
-) -> str:
+def query_pubmed_articles(runtime: ToolRuntime[MedinfoContext], query: str) -> str:
     """Retrieve articles from PubMed based on a search query.
 
     Args:
         query: The search query text.
-        limit: The maximum number of articles to return.
 
     Returns:
         Dict with retrieval operation result.
-        if successful: {"status":"success","message":"Articles retrieved successfully", "articles": json.dumps(articles)}
-        if failure: {"status":"error","message":f"Error retrieving articles: {e}", "articles": None}
+        if successful: {"status":"success","message":"Articles retrieved successfully", "articles": json.dumps(articles), 'hits': len(articles)}
+        if failure: {"status":"error","message":f"Error retrieving articles: {e}", "articles": None, 'hits': 0}
     """
     try:
         vector_store = QdrantVectorStore(
             client=qdrant_client,
             collection_name=QDRANT_COLLECTION_NAME,
             embedding=embedding_model,
+            content_payload_key="content",
+            metadata_payload_key="metadata",
         )
 
         search_result_ids = runtime.context.search_result_ids
         articles = vector_store.similarity_search(
             query=query,
-            limit=limit,
+            limit=200,
             filter=(
                 models.Filter(
                     must=[
                         models.FieldCondition(
-                            key="searchResultId",
+                            key="metadata.searchResultId",
                             match=models.MatchAny(any=search_result_ids),
                         )
                     ]
@@ -317,11 +317,17 @@ def query_pubmed_articles(
         serialized_articles = [
             f"{article.metadata}\n{article.page_content}" for article in articles
         ]
-        return "\n\n\n".join(serialized_articles)
+        return {
+            "status": "success",
+            "message": "Articles retrieved successfully",
+            "articles": "\n\n\n".join(serialized_articles),
+            "hits": len(articles),
+        }
     except Exception as e:
         logger.error(f"Error retrieving articles from PubMed: {e}")
         return {
             "status": "error",
             "message": f"Error retrieving articles: {e}",
             "articles": None,
+            "hits": 0,
         }

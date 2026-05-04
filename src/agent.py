@@ -2,7 +2,9 @@ from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
 from deepagents import create_deep_agent
 
+from src.medinfo_agent.sub_agents import medical_content_agent
 from src.medinfo_agent.context import MedinfoContext
+from src.medinfo_agent.middleware import PmidsMiddleware
 from src.medinfo_agent.prompts import MEDINFO_SYSTEM_PROMPT
 from src.llm_models import llm_model
 from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
@@ -84,7 +86,9 @@ medinfo_agent = create_deep_agent(
     system_prompt=MEDINFO_SYSTEM_PROMPT,
     backend=medinfo_composite_backend,
     tools=[think_tool, retrieve_articles_from_qdrant, query_pubmed_articles],
+    middleware=[PmidsMiddleware()],
     context_schema=MedinfoContext,
+    subagents=[medical_content_agent],
 )
 
 # messages: List[BaseMessage] = []
