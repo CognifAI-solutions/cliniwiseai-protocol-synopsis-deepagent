@@ -3,6 +3,7 @@ import json
 import time
 import logging
 from typing import List, Literal
+from openai import AzureOpenAI
 from tavily import TavilyClient
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
@@ -10,7 +11,14 @@ from langchain.tools import ToolRuntime
 from langgraph.types import Command
 from deepagents.backends.utils import create_file_data
 from requests.exceptions import ConnectionError, Timeout
+from qdrant_client import QdrantClient, models
+from langchain_qdrant import QdrantVectorStore
+from langchain_openai import AzureOpenAIEmbeddings
 
+QDRANT_COLLECTION_NAME = "medinfo-articles"
+
+from src.medinfo_agent.context import MedinfoContext
+from src.llm_models import embedding_model, image_model
 from settings import app_settings
 
 logger = logging.getLogger(__name__)
@@ -19,6 +27,11 @@ tavily_client = TavilyClient(api_key=app_settings.tavily_api_key)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
+
+qdrant_client = QdrantClient(
+    url=app_settings.qudrant_url,
+    api_key=app_settings.qudrant_api_key,
+)
 
 
 def _retry_tavily_call(func, *args, **kwargs):
@@ -29,10 +42,13 @@ def _retry_tavily_call(func, *args, **kwargs):
         except (ConnectionError, Timeout, OSError) as exc:
             if attempt == MAX_RETRIES:
                 raise
-            wait = RETRY_BACKOFF_BASE ** attempt
+            wait = RETRY_BACKOFF_BASE**attempt
             logger.warning(
                 "Tavily API call failed (attempt %d/%d): %s. Retrying in %ds...",
-                attempt, MAX_RETRIES, exc, wait,
+                attempt,
+                MAX_RETRIES,
+                exc,
+                wait,
             )
             time.sleep(wait)
 
@@ -83,8 +99,10 @@ def extract_webpage(
         if file_path and runtime:
 
             content = ""
-            for result in response['results']:
-                content += "Source: " + result['url'] + "\n\n" + result['raw_content'] + "\n"
+            for result in response["results"]:
+                content += (
+                    "Source: " + result["url"] + "\n\n" + result["raw_content"] + "\n"
+                )
                 content += "----------------------------------------\n"
             content = content.strip()
             file_data = create_file_data(content)
@@ -99,10 +117,65 @@ def extract_webpage(
                     ],
                 }
             )
-        return {"status":"success", "message":"File extracted and saved to the file system"}
+        return {
+            "status": "success",
+            "message": "File extracted and saved to the file system",
+        }
     except Exception as e:
         logger.error(f"Error extracting webpage: {e}")
-        return {"status":"error","message":f"Error extracting webpage: {e}"}
+        return {"status": "error", "message": f"Error extracting webpage: {e}"}
+
+
+@tool(parse_docstring=True)
+def generate_image(
+    prompt: str,
+    file_path: str,
+    runtime: ToolRuntime = None,
+):
+    """Generate Image and save it to filesystem
+
+    Args:
+        prompt: A very descriptive prompt about the image to be generated for the image generation model
+        file_path: Absolute path (starting with /) to save the extracted content to the filesystem.
+
+    Returns:
+        Dict with image operation result.
+        if successful: {"status":"success","message":"Image generated and saved to the file system"}
+        if failure: {"status":"error","message":f"Error generating image: {e}"}
+    """
+    try:
+        client = AzureOpenAI(
+            api_key=app_settings.azure_api_key,
+            azure_endpoint=app_settings.azure_endpoint,
+            default_headers={"x-ms-oai-image-generation-deployment": "gpt-image-1.5"},
+            api_version="2025-04-01-preview",
+        )
+        response = client.responses.create(
+            model="gpt-5.4",
+            input=prompt,
+            tools=[{"type": "image_generation"}],
+        )
+        image_data = [
+            output.result
+            for output in response.output
+            if output.type == "image_generation_call"
+        ]
+        image_base64 = image_data[0]
+        file_data = create_file_data(content=image_base64, encoding="base64")
+        return Command(
+            update={
+                "files": {file_path: file_data},
+                "messages": [
+                    ToolMessage(
+                        content=f"Image saved to {file_path})",
+                        tool_call_id=runtime.tool_call_id,
+                    )
+                ],
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating image:{e}")
+        return {"status": "error", "message": f"Error generating image:{e}"}
 
 
 @tool(parse_docstring=True)
@@ -153,3 +226,108 @@ def write_output(markdown_content: str) -> str:
             md_file.write(markdown_content)
     except OSError as exc:
         print(f"Error writing markdown file: {exc}")
+
+
+@tool(parse_docstring=True)
+def retrieve_articles_from_qdrant(pmids: List[str]) -> str:
+    """Retrieve documents from Qdrant collection based on PMIDs.
+
+    Args:
+        pmids: A list of PMIDs to retrieve documents from.
+
+    Returns:
+        Dict with retrieval operation result.
+        if successful: {"status":"success","message":"Documents retrieved successfully", "documents": json.dumps(documents)}
+        if failure: {"status":"error","message":f"Error retrieving documents: {e}", "documents": None}
+    """
+    try:
+        if not qdrant_client.collection_exists(collection_name=QDRANT_COLLECTION_NAME):
+            return {
+                "status": "error",
+                "message": "Collection not found",
+                "documents": None,
+            }
+        points, _next_offset = qdrant_client.scroll(
+            collection_name=QDRANT_COLLECTION_NAME,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="metadata.pmid", match=models.MatchAny(any=pmids)
+                    ),
+                ]
+            ),
+            with_payload=True,
+            with_vectors=False,
+        )
+        documents = [{"id": str(p.id), **(p.payload or {})} for p in points]
+        logger.info(f"Retrieved {len(documents)} documents from Qdrant")
+        return {
+            "status": "success",
+            "message": "Documents retrieved successfully",
+            "documents": json.dumps(documents),
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving documents from Qdrant: {e}")
+        return {
+            "status": "error",
+            "message": f"Error retrieving documents from Qdrant: {e}",
+            "documents": None,
+        }
+
+
+@tool(parse_docstring=True)
+def query_pubmed_articles(runtime: ToolRuntime[MedinfoContext], query: str) -> str:
+    """Retrieve articles from PubMed based on a search query.
+
+    Args:
+        query: The search query text.
+
+    Returns:
+        Dict with retrieval operation result.
+        if successful: {"status":"success","message":"Articles retrieved successfully", "articles": json.dumps(articles), 'hits': len(articles)}
+        if failure: {"status":"error","message":f"Error retrieving articles: {e}", "articles": None, 'hits': 0}
+    """
+    try:
+        vector_store = QdrantVectorStore(
+            client=qdrant_client,
+            collection_name=QDRANT_COLLECTION_NAME,
+            embedding=embedding_model,
+            content_payload_key="content",
+            metadata_payload_key="metadata",
+        )
+
+        search_result_ids = runtime.context.search_result_ids
+        articles = vector_store.similarity_search(
+            query=query,
+            limit=200,
+            filter=(
+                models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="metadata.searchResultId",
+                            match=models.MatchAny(any=search_result_ids),
+                        )
+                    ]
+                )
+                if search_result_ids
+                else None
+            ),
+        )
+        logger.info(f"Retrieved {len(articles)} article results from Qdrant")
+        serialized_articles = [
+            f"{article.metadata}\n{article.page_content}" for article in articles
+        ]
+        return {
+            "status": "success",
+            "message": "Articles retrieved successfully",
+            "articles": "\n\n\n".join(serialized_articles),
+            "hits": len(articles),
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving articles from PubMed: {e}")
+        return {
+            "status": "error",
+            "message": f"Error retrieving articles: {e}",
+            "articles": None,
+            "hits": 0,
+        }

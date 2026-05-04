@@ -1,54 +1,95 @@
 from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
-from langchain_openai import AzureChatOpenAI
 from deepagents import create_deep_agent
 
-from src.prompts import (
+from src.medinfo_agent.sub_agents import medical_content_agent
+from src.medinfo_agent.context import MedinfoContext
+from src.medinfo_agent.middleware import PmidsMiddleware
+from src.medinfo_agent.prompts import MEDINFO_SYSTEM_PROMPT
+from src.llm_models import llm_model
+from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
+from src.article_agent.subagents import research_agent
+from src.synopsis_agent.prompts import (
     ROOT_AGENT_SYSTEM_PROMPT,
 )
-from src.subagents import (
+from src.synopsis_agent.subagents import (
     drug_label_agent,
     existing_protocol_agent,
     protocol_sections_agent,
 )
-from settings import app_settings
-from src.tools import think_tool, write_output
-
-llm_model = AzureChatOpenAI(
-    model="gpt-5.4",
-    azure_deployment=app_settings.azure_deployment,
-    api_version="2025-04-01-preview",
-    api_key=app_settings.azure_api_key,
-    azure_endpoint=app_settings.azure_endpoint,
-    use_responses_api=True,
-    reasoning_effort="medium",
-    service_tier='priority'
+from src.tools import (
+    generate_image,
+    query_pubmed_articles,
+    retrieve_articles_from_qdrant,
+    think_tool,
+    write_output,
 )
+
 
 max_concurrent_research_units = 3
 max_researcher_iterations = 3
 current_date = datetime.now().strftime("%Y-%m-%d")
 
-composite_backend = lambda rt: CompositeBackend(
-    default=StateBackend(rt),
+synopsis_composite_backend = CompositeBackend(
+    default=StateBackend(),
     routes={
-        "/memories/": StoreBackend(rt, namespace=lambda ctx: ("filesystem",)),
+        "/memories/synopsis": StoreBackend(
+            namespace=lambda _rt: ("filesystem-synopsis",)
+        ),
     },
 )
 
-agent = create_deep_agent(
+synopsis_agent = create_deep_agent(
     name="root_agent",
     model=llm_model,
     system_prompt=ROOT_AGENT_SYSTEM_PROMPT,
     tools=[write_output, think_tool],
     subagents=[drug_label_agent, existing_protocol_agent, protocol_sections_agent],
-    backend=composite_backend,
-    memory=["/memories/AGENTS.md"],
+    backend=synopsis_composite_backend,
+    memory=["/memories/synopsis/AGENTS.md"],
 )
 
-agent = agent.with_config({
-   'recursion_limit': 500
-})
+synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
+
+article_composite_backend = CompositeBackend(
+    default=StateBackend(),
+    routes={
+        "/memories/article": StoreBackend(
+            namespace=lambda _rt: ("filesystem-article",)
+        ),
+    },
+)
+
+article_agent = create_deep_agent(
+    model=llm_model,
+    name="article_root_agent",
+    system_prompt=ARTICLE_SYSTEM_PROMPT,
+    backend=article_composite_backend,
+    subagents=[research_agent],
+    tools=[think_tool, generate_image],
+)
+
+article_agent = article_agent.with_config({"recursion_limit": 500})
+
+medinfo_composite_backend = CompositeBackend(
+    default=StateBackend(),
+    routes={
+        "/memories/medinfo": StoreBackend(
+            namespace=lambda _rt: ("filesystem-medinfo",)
+        ),
+    },
+)
+
+medinfo_agent = create_deep_agent(
+    model=llm_model,
+    name="medinfo_root_agent",
+    system_prompt=MEDINFO_SYSTEM_PROMPT,
+    backend=medinfo_composite_backend,
+    tools=[think_tool, retrieve_articles_from_qdrant, query_pubmed_articles],
+    middleware=[PmidsMiddleware()],
+    context_schema=MedinfoContext,
+    subagents=[medical_content_agent],
+)
 
 # messages: List[BaseMessage] = []
 # messages.append(HumanMessage(USER_INPUT))
