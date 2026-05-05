@@ -29,8 +29,8 @@ MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
 
 qdrant_client = QdrantClient(
-    url=app_settings.qudrant_url,
-    api_key=app_settings.qudrant_api_key,
+    url=app_settings.qdrant_url,
+    api_key=app_settings.qdrant_api_key,
 )
 
 
@@ -297,6 +297,14 @@ def query_pubmed_articles(runtime: ToolRuntime[MedinfoContext], query: str) -> s
         )
 
         search_result_ids = runtime.context.search_result_ids
+        if not search_result_ids:
+            logger.info("No search result IDs provided")
+            return {
+                "status": "error",
+                "message": "You must select at least one search strategy.",
+                "articles": None,
+                "hits": 0,
+            }
         articles = vector_store.similarity_search(
             query=query,
             limit=200,

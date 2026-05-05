@@ -17,7 +17,7 @@ class Settings(BaseSettings):
   langsmith_tracing:bool=Field(alias='LANGSMITH_TRACING')
   db_url:str=Field(alias='DB_URI')
   clerk_secret_key:str=Field(alias='CLERK_SECRET_KEY')
-  qudrant_url:str=Field(alias='QUDRANT_URL')
-  qudrant_api_key:str=Field(alias='QUDRANT_API_KEY')
+  qdrant_url:str=Field(alias='QDRANT_URL')
+  qdrant_api_key:str=Field(alias='QDRANT_API_KEY')
 
 app_settings = Settings()
