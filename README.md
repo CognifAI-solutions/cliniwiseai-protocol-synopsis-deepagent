@@ -75,3 +75,38 @@ IMAGE_NAME=<image-name> docker compose up -d
 For server/runtime issues after deployment, refer to:
 
 - `cursor_langchain_deepagent_server_error.md`
+
+## Deploy to Azure Container Apps.
+
+Build the LangGraph image:
+
+```bash
+langgraph build -t synopsis-agent
+```
+
+Login to the container registry
+```
+az acr login --name cliniwiseprotocolagent
+```
+
+Tag docker image
+
+```
+docker tag synopsis-agent cliniwiseprotocolagent.azurecr.io/synopsis-agent
+```
+
+Push docker image
+
+```
+ docker push cliniwiseprotocolagent.azurecr.io/synopsis-agent
+```
+
+Create a new revision in the container app **protocol-deep-agent**
+
+Add env variables from the .env.example. Add the following additional env variables
+
+```
+DATABASE_URI=<same as DB_URI value>
+REDIS_URI
+```
+
