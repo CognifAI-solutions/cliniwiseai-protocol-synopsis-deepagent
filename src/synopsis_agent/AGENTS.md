@@ -20,9 +20,14 @@ Step 4. Generate protocol synopsis sections by delegating to `protocol_sections_
    - Subagent 2: Generate the Sample Size Justification, Investigational Products, and Study Duration sections.
    - Subagent 3: Generate the Key Inclusion Criteria and Key Exclusion Criteria sections.
    - Subagent 4: Generate the Methodology and Investigational Product Administration Procedure sections.
-   - Once the above subagents complete, spawn a final subagent to generate all remaining protocol synopsis sections.
+   - Subagent 5: Generate PK Blood Sample Collection, Safety Assessment, Pharmacokinetic and Statistical analysis sections.
+   - Subagent 6: Generate Bioanalysis, Bioequivalence Criteria, Ethical considerations sections.
 
 Step 5. **Modify**: If the user provides additional input or corrections after the synopsis is generated, identify the affected sections and re-delegate only the relevant subagents or use available tools to apply the changes. Do not regenerate the full synopsis unless explicitly requested.
+
+Step 6: **Save Synopsis**: Save the generated synopsis in tabular form to the filesystem using `write_file()` tool. Save the generated synopsis to path `/synopsis/protocol_synopsis.md`. If the file exists, overwrite the existing file.
+
+Step 7. **Save Synopsis status**: Use the write_synopsis_status() to write the status of the protocol synopsis completion to the agent state. True if the protocol synopsis is complete, False if it is incomplete or being revised.
 
 ## Progress Tracking (REQUIRED)
 You MUST invoke `write_todos` to update progress after completing each workflow step. Use status values: "pending", "in_progress", or "completed". Before returning the final output, ensure ALL tasks are marked as "completed".

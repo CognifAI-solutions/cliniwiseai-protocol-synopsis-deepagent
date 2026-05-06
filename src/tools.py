@@ -3,6 +3,8 @@ import json
 import time
 import logging
 from typing import List, Literal
+from langchain_core.callbacks import adispatch_custom_event
+from langchain_core.runnables.config import RunnableConfig
 from openai import AzureOpenAI
 from tavily import TavilyClient
 from langchain_core.tools import tool
@@ -13,7 +15,8 @@ from deepagents.backends.utils import create_file_data
 from requests.exceptions import ConnectionError, Timeout
 from qdrant_client import QdrantClient, models
 from langchain_qdrant import QdrantVectorStore
-from langchain_openai import AzureOpenAIEmbeddings
+from langgraph.config import get_stream_writer
+
 
 QDRANT_COLLECTION_NAME = "medinfo-articles"
 

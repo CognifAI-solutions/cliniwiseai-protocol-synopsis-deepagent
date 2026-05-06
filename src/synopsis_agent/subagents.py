@@ -73,7 +73,8 @@ protocol_sections_agent = {
     **samplesize_products_duration** : Skills to generate the Sample Size Justification, Investigational Products, Study Duration sections of the protocol synopsis.
     **inclusion_exclusion_criteria** : Skills to generate the Key Inclusion criteria and Key Exclusion Criteria sections of the protocol synopsis.
     **methodology_administration_procedure** : Skills to generate the Methodology and Investigational Product Administration Procedure sections of the protocol synopsis.
-    **remaining_sections** : Skills to generate the remaining sections of the protocol synopsis.
+    **pk_blood_sample_safety_pk_analysis** : Skills to generate the PK Blood Sample Collection, Safety Assessment, Pharmacokinetic and Statistical analysis sections of the protocol synopsis.
+    **bioanalysis_bioequivalence_criteria_ethical_consideration** : Skills to generate the Bioanalysis, Bioequivalence Criteria, Ethical considerations sections of the protocol synopsis.
     </Available Skills>
 
     <Available Tools>
@@ -87,7 +88,8 @@ protocol_sections_agent = {
         "/memories/skills/samplesize_products_duration",
         "/memories/skills/inclusion_exclusion_criteria",
         "/memories/skills/methodology_administration_procedure",
-        "/memories/skills/remaining_sections"
+        "/memories/skills/pk_blood_sample_safety_pk_analysis",
+        "/memories/skills/bioanalysis_bioequivalence_criteria_ethical_consideration",
     ],
 }
 

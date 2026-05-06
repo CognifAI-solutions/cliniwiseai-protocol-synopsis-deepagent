@@ -9,6 +9,7 @@ from src.medinfo_agent.prompts import MEDINFO_SYSTEM_PROMPT
 from src.llm_models import llm_model
 from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
 from src.article_agent.subagents import research_agent
+from src.synopsis_agent.middleware import SynopsisStatusMiddleware
 from src.synopsis_agent.prompts import (
     ROOT_AGENT_SYSTEM_PROMPT,
 )
@@ -46,6 +47,7 @@ synopsis_agent = create_deep_agent(
     tools=[write_output, think_tool],
     subagents=[drug_label_agent, existing_protocol_agent, protocol_sections_agent],
     backend=synopsis_composite_backend,
+    middleware=[SynopsisStatusMiddleware()],
     memory=["/memories/synopsis/AGENTS.md"],
 )
 

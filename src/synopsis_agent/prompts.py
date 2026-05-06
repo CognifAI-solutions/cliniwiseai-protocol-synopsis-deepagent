@@ -24,25 +24,10 @@ You will receive a study title, a sponsor drug/device name, a reference drug/dev
     **extract_webpage**: Extract and parse content from a given URL.
     **think_tool**: For reflection and strategic planning throughout the workflow.
     **CRITICAL: Invoke think_tool after EVERY workflow step to validate results before proceeding to the next step. **
+    **write_synopsis_status**: Write the status of the protocol synopsis completion to the agent state. True if the protocol synopsis is complete, False if it is incomplete or being revised.
 </Available tools>
 
 """
-
-WORKFLOW_INSTRUCTIONS="""
-Follow this workflow:
-1. **Plan**: Create a todo list with write_todos to break down the research into focused tasks
-2. **Save the request**: Use write_file() to save the user's research question to `/research_request.md`
-3. **Research**: Delegate research tasks to sub-agents using the task() tool - ALWAYS use sub-agents for research, never conduct research yourself
-4. **Synthesize**: Review all sub-agent findings and consolidate citations (each unique URL gets one number across all findings)
-
-
-## Planning Guidelines
-- Batch similar research tasks into a single TODO to minimize overhead
-- For simple fact-finding questions, use 1 sub-agent
-- For comparisons or multi-faceted topics, delegate to multiple parallel sub-agents
-- Each sub-agent should research one specific aspect and return findings.
-"""
-
 
 SUBAGENT_DELEGATION_INSTRUCTIONS = """# Sub-Agent Research Coordination
 
