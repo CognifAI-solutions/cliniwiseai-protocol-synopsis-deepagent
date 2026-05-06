@@ -49,7 +49,7 @@ existing_protocol_agent = {
     5.**Extract all related protocols**: For each NCT Id from previous step, extract the protocol information using extract_webpage with advanced extract_depth and file_path='/synopsis/existing_protocols/<NCT Id>.md' to save the content directly.
     6.**Report**: Return the list of successfully saved protocols and any errors.
     """,
-    "skills": ["/memories/skills/search_existing_protocols"],
+    "skills": ["/memories/synopsis/skills"],
 }
 
 
@@ -83,14 +83,7 @@ protocol_sections_agent = {
     </Available Tools>
 
     """,
-    "skills": [
-        "/memories/skills/phase_objective_design",
-        "/memories/skills/samplesize_products_duration",
-        "/memories/skills/inclusion_exclusion_criteria",
-        "/memories/skills/methodology_administration_procedure",
-        "/memories/skills/pk_blood_sample_safety_pk_analysis",
-        "/memories/skills/bioanalysis_bioequivalence_criteria_ethical_consideration",
-    ],
+    "skills": ["/memories/synopsis/skills"],
 }
 
 regulatory_context_agent = {

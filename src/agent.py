@@ -34,7 +34,7 @@ current_date = datetime.now().strftime("%Y-%m-%d")
 synopsis_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/synopsis": StoreBackend(
+        "/memories/synopsis/": StoreBackend(
             namespace=lambda _rt: ("filesystem-synopsis",)
         ),
     },
@@ -49,6 +49,7 @@ synopsis_agent = create_deep_agent(
     backend=synopsis_composite_backend,
     middleware=[SynopsisStatusMiddleware()],
     memory=["/memories/synopsis/AGENTS.md"],
+    skills=["/memories/synopsis/skills"],
 )
 
 synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
@@ -56,7 +57,7 @@ synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
 article_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/article": StoreBackend(
+        "/memories/article/": StoreBackend(
             namespace=lambda _rt: ("filesystem-article",)
         ),
     },
@@ -76,7 +77,7 @@ article_agent = article_agent.with_config({"recursion_limit": 500})
 medinfo_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/medinfo": StoreBackend(
+        "/memories/medinfo/": StoreBackend(
             namespace=lambda _rt: ("filesystem-medinfo",)
         ),
     },
