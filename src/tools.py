@@ -80,15 +80,59 @@ def internet_search(query: str, max_results: int = 15) -> str:
 @tool(parse_docstring=True)
 def extract_webpage(
     urls: List[str],
-    file_path: str,
     extract_depth: Literal["basic", "advanced"] = "basic",
-    runtime: ToolRuntime = None,
+    include_images: bool = True,
 ) -> Command | str:
     """Extract webpage content from the provided URLs.
 
     Args:
         urls: A list of URLs to extract content from.
+        extract_depth: The depth of the extraction. "basic" for basic extraction and "advanced" for advanced extraction.
+        include_images: Whether to include images in the extracted content.
+
+    Returns:
+        Dict with extraction operation result.
+        if successful: {"status":"success","message":"Webpage extracted successfully", "content": content}
+        if failure: {"status":"error","message":f"Error extracting webpage: {e}", "content": None}
+    """
+    try:
+        response = _retry_tavily_call(
+            tavily_client.extract,
+            urls,
+            format="markdown",
+            extract_depth=extract_depth,
+            include_images=include_images,
+        )
+    
+
+        content = ""
+        for result in response["results"]:
+                content += (
+                    "Source: " + result["url"] + "\n\n" + result["raw_content"] + "\n"
+                )
+                content += "----------------------------------------\n"
+        content = content.strip()
+        return {"status": "success", "message": "Webpage extracted successfully", "content": content}
+    except Exception as e:
+        logger.error(f"Error extracting webpage: {e}")
+        return {"status": "error", "message": f"Error extracting webpage: {e}", "content": None}
+
+@tool(parse_docstring=True)
+def extract_webpage_and_save(
+    urls: List[str],
+    file_path: str,
+    extract_depth: Literal["basic", "advanced"] = "basic",
+    include_images: bool = True,
+    runtime: ToolRuntime = None,
+) -> Command | str:
+    """Extract webpage content from the provided URLs and save result to the filesystem.
+
+    Args:
+        urls: A list of URLs to extract content from.
         file_path: Absolute path (starting with /) to save the extracted content to the filesystem.
+        extract_depth: The depth of the extraction. "basic" for basic extraction and "advanced" for advanced extraction.
+        include_images: Whether to include images in the extracted content.
+        runtime: Tool runtime metadata for attaching tool call responses.
 
     Returns:
         Dict with extraction operation result.
@@ -97,7 +141,11 @@ def extract_webpage(
     """
     try:
         response = _retry_tavily_call(
-            tavily_client.extract, urls, format="markdown", extract_depth=extract_depth
+            tavily_client.extract,
+            urls,
+            format="markdown",
+            extract_depth=extract_depth,
+            include_images=include_images,
         )
         if file_path and runtime:
 
