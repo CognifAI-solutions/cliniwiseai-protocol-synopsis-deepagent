@@ -2,6 +2,7 @@ from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
 from deepagents import CompiledSubAgent, create_deep_agent
 
+from src.full_protocol_agent.subagents import protocol_content_agent
 from src.full_protocol_agent.prompts import FULL_PROTOCOL_ROOT_SYSTEM_PROMPT
 from src.medinfo_agent.sub_agents import medical_content_agent
 from src.medinfo_agent.context import MedinfoContext
@@ -24,7 +25,6 @@ from src.tools import (
     query_pubmed_articles,
     retrieve_articles_from_qdrant,
     think_tool,
-    write_output,
 )
 
 
@@ -33,43 +33,14 @@ max_researcher_iterations = 3
 current_date = datetime.now().strftime("%Y-%m-%d")
 
 
-full_protocol_composite_backend = CompositeBackend(
-    default=StateBackend(),
-    routes={
-        "/memories/full_protocol/": StoreBackend(
-            namespace=lambda _rt: ("filesystem-full_protocol",)
-        ),
-    },
-)
-
-full_protocol_root = create_deep_agent(
-    name="full_protocol_agent",
-    model=llm_model,
-    system_prompt=FULL_PROTOCOL_ROOT_SYSTEM_PROMPT,
-    tools=[think_tool],
-    subagents=[drug_label_agent, existing_protocol_agent, synopsis_sections_agent],
-    backend=full_protocol_composite_backend,
-    # middleware=[SynopsisStatusMiddleware()],
-    # memory=["/memories/synopsis/AGENTS.md"],
-    # skills=["/memories/synopsis/skills"],
-)
-
-full_protocol_subagent:CompiledSubAgent = {
-    "name": "full_protocol_subagent",
-       "description": (
-        "Generates the full clinical protocol from the approved synopsis "
-        "and label/existing-protocol files already on the filesystem at "
-        "/synopsis/. Input: a brief task description; the agent reads "
-        "/synopsis/protocol_synopsis.md and /synopsis/labels/* itself."
-    ),
-    "runnable": full_protocol_root,
-}
-
 synopsis_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
         "/memories/synopsis/": StoreBackend(
             namespace=lambda _rt: ("filesystem-synopsis",)
+        ),
+        "/memories/protocol/": StoreBackend(
+            namespace=lambda _rt: ("filesystem-protocol",)
         ),
     },
 )
@@ -83,12 +54,12 @@ synopsis_agent = create_deep_agent(
         drug_label_agent,
         existing_protocol_agent,
         synopsis_sections_agent,
-        full_protocol_subagent,
+        protocol_content_agent,
     ],
     backend=synopsis_composite_backend,
     middleware=[SynopsisStatusMiddleware()],
     memory=["/memories/synopsis/AGENTS.md"],
-    skills=["/memories/synopsis/skills"],
+    skills=["/memories/synopsis/skills", "/memories/protocol/skills"],
 )
 
 synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})

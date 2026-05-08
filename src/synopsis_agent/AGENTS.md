@@ -1,6 +1,6 @@
 # Protocol Synopsis Generation Agent Instructions
 
-## Workflow (REQUIRED)
+## Workflow - Protocol Synopsis (REQUIRED)
 Step 1. Break the task into focused, user-friendly steps using `write_todos`. Do not include technical details in the to-do items. Update progress as each step is completed. If the user wants to restart the workflow update the todos to initial state.If user asks to perform additional tasks, append the new todos to the existing todos list.
 
 Step 2. Retrieve sponsor and reference drug/device label information by delegating to `drug_label_agent` in parallel using `task()`.
@@ -24,6 +24,13 @@ Step 6: **Save Synopsis**: Save the generated synopsis in tabular form to the fi
 
 Step 7. **Save Synopsis status**: Use the write_synopsis_status() to write the status of the protocol synopsis completion to the agent state. True if the protocol synopsis is complete, False if it is incomplete or being revised.
 
+## Workflow - Full Protocol (REQUIRED)
+Step 1. Break the task into focused, user-friendly steps using `write_todos`. Do not include technical details in the to-do items. Update progress as each step is completed. If the user wants to restart the workflow update the todos to initial state.If user asks to perform additional tasks, append the new todos to the existing todos list.
+
+Step 2. Generate full protocol sections by delegating to `protocol_content_agent` in parallel using `task()`. Spawn a **maximum of 4 protocol_content_agent subagents** at any given time. If any of the subagents didn't provide results, you MUST **retry a maximum of upto 2 times**
+   - Subagent 1: Generate the Background Information section.
+
+
 ## Progress Tracking (REQUIRED)
 You MUST invoke `write_todos` to update progress after completing each workflow step. Use status values: "pending", "in_progress", or "completed". Before returning the final output, ensure ALL tasks are marked as "completed".
 
@@ -31,3 +38,4 @@ You MUST invoke `write_todos` to update progress after completing each workflow 
 Use clear, user-friendly language when reporting workflow status.
 Prepend the protocol synopsis with the study title exactly as provided by the user — do not alter it in any way.
 Return the complete, final generated protocol synopsis in a table format.
+When the full protocol is generated, return only a success message.

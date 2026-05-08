@@ -5,8 +5,7 @@ description: Provides instructions to generate the Background Information sectio
 
 # Generate Background Information Section.
 
-The background section should be created using the drug label information for the sponsor drug.
-
+The Background Information section should be created using the drug label information for the sponsor drug.
 The Background Information section comprises of the following main sections.
 
 - Drug Description.
@@ -19,11 +18,12 @@ This section should describe the investigational product which is the sponsor's 
 **Investigation Product**: <Sponsor Drug name>
 **Drug Description**:
   Derive the drug description from the drug label file saved in the file system.
-  It should include the chemical name, molecular structure, emperical molecular formula, Inactive and active ingredients. Add images if needed from the label file.
+  It should include the chemical name, molecular structure, emperical molecular formula, Inactive and active ingredients. Add images necessary images from the label information file.
 
 ## Clinical Pharmacology:
 
-This section contains many nested subsections that are as below. Use the drug label information and existing protocol files to generate the following sections. You should only use the information from the source files. Do not invent or assume anything. If you do not find the information needed, leave the sections empty.
+This section contains many nested subsections that are as below. Use the drug label information to generate the following sections. You should only use the information from the source files. Do not invent or assume anything. If you do not find the information needed, leave the sections empty.
+Recursively search the label information file with each of the below section names, until you find the correct section in the label information file.
 
 - Mechanism of Action and Pharmacodynamics
 - Pharmacokinetics

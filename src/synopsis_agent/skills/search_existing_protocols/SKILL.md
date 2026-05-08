@@ -6,6 +6,7 @@ description: Provides steps to search existing protocols submitted for the refer
 # Searching for existing protocols.
 
 # Searching:
+Use the **extract_webpage** tool for searching the list of protocols.
 This will be the base URL that you will use to get a list of protocols from clinicaltrials.gov
 **Base URL**:  https://clinicaltrials.gov/search?
 **Query Parameters**:
@@ -28,6 +29,7 @@ https://clinicaltrials.gov/search?term=Bioequivalence&intr=Lynparza&aggFilters=d
 
 # Extraction:
 Once you have constructed the URL, use it to fetch the search results page.
+Use the **extract_webpage_and_save** to extract the protocol and save it to the file system.
 - Extract all protocol links from the search results. Each result card contains a link to an individual study page in the format: `https://clinicaltrials.gov/study<NCT ID>`
 - Collect all `NCT` identifiers listed on the results page.
 
