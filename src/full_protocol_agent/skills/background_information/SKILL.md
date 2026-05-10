@@ -18,7 +18,7 @@ This section should describe the investigational product which is the sponsor's 
 **Investigation Product**: <Sponsor Drug name>
 **Drug Description**:
   Derive the drug description from the drug label file saved in the file system.
-  It should include the chemical name, molecular structure, emperical molecular formula, Inactive and active ingredients. Add images necessary images from the label information file.
+  It should include the chemical name, molecular structure, emperical molecular formula, Inactive and active ingredients. Add necessary images from the label information file.
 
 ## Clinical Pharmacology:
 
