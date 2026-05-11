@@ -20,6 +20,12 @@ protocol_content_agent = {
     of the protocol.
     **population** : Skills to generate the Population section
     of the protocol.
+    **study_schedule_procedures** : Skills to generate the Study Schedule and Procedures section
+    of the protocol.
+    **assessments** : Skills to generate the Assessments section
+    of the protocol.
+    **investigational_product_handling** : Skills to generate the Handling of Investigational Product section
+    of the protocol.
     </Available Skills>
 
     <Available Tools>

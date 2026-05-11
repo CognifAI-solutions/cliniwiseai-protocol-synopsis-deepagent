@@ -32,6 +32,9 @@ Step 2. Generate full protocol sections by delegating to `protocol_content_agent
    - Subagent 2: Generate the Study Objectives and Rationale section.
    - Subagent 3: Generate the Study Design section.
    - Subagent 4: Generate the Population section.
+   - Subagent 5: Generate the Study Schedule and Procedures section.
+   - Subagent 6: Generate the Assessments section.
+   - Subagent 7: Generate the Handling of Investigational Product section.
 
 
 ## Progress Tracking (REQUIRED)
