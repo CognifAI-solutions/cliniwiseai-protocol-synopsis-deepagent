@@ -29,6 +29,9 @@ Step 1. Break the task into focused, user-friendly steps using `write_todos`. Do
 
 Step 2. Generate full protocol sections by delegating to `protocol_content_agent` in parallel using `task()`. Spawn a **maximum of 4 protocol_content_agent subagents** at any given time. If any of the subagents didn't provide results, you MUST **retry a maximum of upto 2 times**
    - Subagent 1: Generate the Background Information section.
+   - Subagent 2: Generate the Study Objectives and Rationale section.
+   - Subagent 3: Generate the Study Design section.
+   - Subagent 4: Generate the Population section.
 
 
 ## Progress Tracking (REQUIRED)

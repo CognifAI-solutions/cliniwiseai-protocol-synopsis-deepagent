@@ -14,10 +14,17 @@ protocol_content_agent = {
     <Available Skills>
     **background_information** : Skills to generate the Background Information section
     of the protocol.
+    **study_objectives_rationale** : Skills to generate the Study Objectives and Rationale sections
+    of the protocol.
+    **study_design** : Skills to generate the Study Design section
+    of the protocol.
+    **population** : Skills to generate the Population section
+    of the protocol.
     </Available Skills>
 
     <Available Tools>
     **think_tool**: For reflection and strategic planning during data extraction.
+    **generate_image**: For generating images for the protocol.
     **CRITICAL: Use think_tool to reflect on results and plan next steps**
     </Available Tools>
     

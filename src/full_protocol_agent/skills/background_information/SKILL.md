@@ -1,11 +1,13 @@
 ---
-name: background
+name: background_information
 description: Provides instructions to generate the Background Information section of the clinical trial protocol for the sponsor drug.
 ---
 
 # Generate Background Information Section.
 
-The Background Information section should be created using the drug label information for the sponsor drug.
+The Background Information section should be created using the drug label information for the sponsor drug. The label information can be found in the 
+filesystem in the below path:
+- **Drugs' Label Information**: /synopsis/labels/<drug_name>.md
 The Background Information section comprises of the following main sections.
 
 - Drug Description.
