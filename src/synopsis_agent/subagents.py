@@ -1,10 +1,15 @@
-from src.tools import extract_webpage, extract_webpage_and_save, internet_search, think_tool
+from src.tools import (
+    extract_webpage,
+    extract_webpage_and_save,
+    internet_search,
+    think_tool,
+)
 
 
 drug_label_agent = {
     "name": "drug_label_agent",
     "description": "Extract label information for a drug/device. Accepts only the drug name, dosage and format as provided by the user. No additional instructions to be provided to the sub-agent in the task description.",
-    "tools": [internet_search, extract_webpage_and_save, think_tool],
+    "tools": [internet_search, extract_webpage_and_save, extract_webpage, think_tool],
     "system_prompt": f"""
     You are a data extraction agent.
     Your task is to extract the drug/ device label information provided to you by the user.
@@ -30,7 +35,7 @@ drug_label_agent = {
     ```
     https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=07ec0eb1-75b7-4f2e-8c58-9d90f10c9849
     ```
-    Step 3: First you have to try to extract the printer friendly version of drug label if available by using extract tool
+    Step 3: First you have to try to extract the printer friendly version of drug label if available by
     by creating the URL as below. Replace the setid with the value from the previous step.
     Use the **extract_webpage_and_save** tool to extract the content and save it to the filesystem.
     Use advanced extract_depth and include_images as True and file_path='/synopsis/labels/<drug_name>.md' to save the content directly.

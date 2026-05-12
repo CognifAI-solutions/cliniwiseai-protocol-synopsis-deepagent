@@ -10,7 +10,7 @@ This section contains the following sub-sections.
 - Screening
 
 # Generating Study Calendar Subsection
-This section should have two Schedule of Assessments(SoA) tables in matrix format.
+This section should have two Schedule of Assessments(SoA) tables in matrix format. Generate only empty matrices.
 
 ## 1. SoA table for visits from 1 to 3
 - Use a matrix/table format.

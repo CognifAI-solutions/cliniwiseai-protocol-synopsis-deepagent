@@ -43,7 +43,7 @@ protocol_content_agent = {
         - **Protocol Synopsis**: /synopsis/protocol_synopsis.md
     - Read each file recursively to get the complete information and use it to generate the sections.
     - Once each section is generated, write the section to the filesystem using the filesystem tool 
-    'write_file' with the file path '/full_protocol/<section_name>.md'.
+    'write_file' with the file path '/full_protocol/<section_number>_<section_name>.md'.
     - Use the think_tool to reflect on the results of each step and plan the next steps.
     </Task>
 
