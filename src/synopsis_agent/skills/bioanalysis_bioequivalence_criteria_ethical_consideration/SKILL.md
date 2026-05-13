@@ -22,7 +22,7 @@ If the intra-patient co-efficient of variation of the reference formulation for 
 
 ## Ethical considerations
 
-Add the below statuc content
+Add the below static content
 
 The study will commence only after obtaining written approval from the Indian Regulatory (Central Drugs Standard Control Organization) and site Institutional Ethics Committee.
 The study will be conducted as per New Drugs and Clinical Trials Rules, 2019 of CDSCO (Central Drugs Standard Control Organization) and further amendments, Ministry of health and family welfare, Government of India; National Ethical guidelines for Biomedical and Health Research involving Human Participants, ICMR (Indian Council of Medical Research (2017)); ICH (International Council on Harmonization) E6 (R2) ‘Guideline for Good Clinical Practice’, applicable EMA guidelines and the Declaration of Helsinki (Brazil) 2013. The study will be registered on applicable clinical trial registry.

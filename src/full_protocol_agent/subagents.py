@@ -2,8 +2,9 @@ from src.tools import think_tool
 
 protocol_content_agent = {
     "name": "protocol_content_agent",
-    "description": """Create individual sections of the protocol synopsis with provided study title, drug/ device name provided 
-    by the sponsor and the reference drug/device.
+    "description": """Create individual sections of the protocol with provided study title, 
+    sponsor drug/device name, reference drug/device name, 
+    regulatory authority (FDA or EMA) and optionaly Sponsor's name and CRO's name.
     """,
     "tools": [think_tool],
     "system_prompt": """
@@ -25,6 +26,22 @@ protocol_content_agent = {
     **assessments** : Skills to generate the Assessments section
     of the protocol.
     **investigational_product_handling** : Skills to generate the Handling of Investigational Product section
+    of the protocol.
+    **patient_safety** : Skills to generate the Patient Safety section
+    of the protocol.
+    **bioanalytical_procedures** : Skills to generate the Bioanalytical Procedures section
+    of the protocol.
+    **pharmacokinetic_and_statistical_analysis** : Skills to generate the Pharmacokinetic and Statistical Analysis section
+    of the protocol.
+    **pk_parameters_statistical_analysis** : Skills to generate the Statistical Analysis of Pharmacokinetic Parameters section
+    of the protocol.
+    **ethical_and_regulatory_standards** : Skills to generate the Ethical and Regulatory Standards section
+    of the protocol.
+    **data_handling_report_keeping** : Skills to generate the Data handling and Report Keeping section
+    of the protocol.
+    **study_monitoring_auditing_inspection** : Skills to generate the Study Monitoring, Auditing and Inspection section
+    of the protocol.
+    **administrative_procedures** : Skills to generate the Administrative Procedures section
     of the protocol.
     </Available Skills>
 
