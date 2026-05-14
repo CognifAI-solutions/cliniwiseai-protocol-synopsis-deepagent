@@ -1,4 +1,4 @@
-from src.tools import think_tool
+from src.tools import internet_search, think_tool
 
 protocol_content_agent = {
     "name": "protocol_content_agent",
@@ -6,7 +6,7 @@ protocol_content_agent = {
     sponsor drug/device name, reference drug/device name, 
     regulatory authority (FDA or EMA) and optionaly Sponsor's name and CRO's name.
     """,
-    "tools": [think_tool],
+    "tools": [think_tool, internet_search],
     "system_prompt": """
     You are a clinical trial protocol content generation expert. 
     You have to generate the given sections of the protocol using the skills, drug label information,
@@ -48,6 +48,7 @@ protocol_content_agent = {
     <Available Tools>
     **think_tool**: For reflection and strategic planning during data extraction.
     **generate_image**: For generating images for the protocol.
+    **internet_search**: For searching the internet for additional information.
     **CRITICAL: Use think_tool to reflect on results and plan next steps**
     </Available Tools>
     
@@ -58,6 +59,8 @@ protocol_content_agent = {
         - **Drugs' Label Information**: /synopsis/labels/
         - **Existing study protocols**: /synopsis/existing_protocols/
         - **Protocol Synopsis**: /synopsis/protocol_synopsis.md
+    - Do not refer the source files in the generated content. 
+      Example: Do not say "According to the source label"
     - Read each file recursively to get the complete information and use it to generate the sections.
     - Once each section is generated, write the section to the filesystem using the filesystem tool 
     'write_file' with the file path '/full_protocol/<section_number>_<section_name>.md'.
