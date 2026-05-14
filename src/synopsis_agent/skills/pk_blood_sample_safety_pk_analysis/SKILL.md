@@ -1,9 +1,9 @@
 ---
-name: remaining_sections
-description: Provides instructions to generate the remaining sections in the protocol synopsis. Use the study title, drug/device name provided by sponsor, reference drug or device name.
+name: pk_blood_safety_assessment_pk_analysis
+description: Instructions to generate PK Blood Sample collection, Safety Assessment and PK and statistical analysis. Use the study title, drug/device name provided by sponsor, reference drug or device name.
 ---
 
-# Generating the remaining sections
+# Generating the PK Blood Sample Collection, Safety Assessment, Pharmacokinetic and Statistical analysis
 
 ## PK Blood Sample Collection
 Static message stating that
@@ -15,17 +15,17 @@ Applicable only for PK Studies
 
 A general write up will be added here, tests performed for safety assessments will be added in brief (derived from label and general safety tests), along with the mention of medical dictionary latest version used for coding of AEs.
 
+## Pharmacokinetic and Statistical analysis
+Static message stating that
+```
+Applicable only for PK studies
+```
+
 ## Bioanalysis
 
 Static message stating that
 ```
 To be provided by Bioanalytical Team
-```
-
-## Pharmacokinetic and Statistical analysis
-Static message stating that
-```
-Applicable only for PK studies
 ```
 
 ## Bioequivalence Criteria

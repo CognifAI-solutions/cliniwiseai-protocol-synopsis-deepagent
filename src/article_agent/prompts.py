@@ -83,6 +83,7 @@ You can call these tools in series or in parallel, your research is conducted in
 <Available tools>
     **internet_search**: Search the internet for drug, device, or regulatory information.
     **extract_webpage**: Extract and parse content from a given URL and save it to filesystem.
+    **extract_webpage_and_save**: Extract and parse content from a given URL and save it to filesystem.
     **think_tool**: For reflection and strategic planning throughout the workflow.
     **CRITICAL: Invoke think_tool after EVERY step to validate results before proceeding to the next step. **
 </Available tools>

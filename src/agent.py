@@ -1,7 +1,9 @@
 from datetime import datetime
 from deepagents.backends import CompositeBackend, StoreBackend, StateBackend
-from deepagents import create_deep_agent
+from deepagents import CompiledSubAgent, create_deep_agent
 
+from src.full_protocol_agent.subagents import protocol_content_agent
+from src.full_protocol_agent.prompts import FULL_PROTOCOL_ROOT_SYSTEM_PROMPT
 from src.medinfo_agent.sub_agents import medical_content_agent
 from src.medinfo_agent.context import MedinfoContext
 from src.medinfo_agent.middleware import PmidsMiddleware
@@ -9,20 +11,20 @@ from src.medinfo_agent.prompts import MEDINFO_SYSTEM_PROMPT
 from src.llm_models import llm_model
 from src.article_agent.prompts import ARTICLE_SYSTEM_PROMPT
 from src.article_agent.subagents import research_agent
+from src.synopsis_agent.middleware import SynopsisStatusMiddleware
 from src.synopsis_agent.prompts import (
     ROOT_AGENT_SYSTEM_PROMPT,
 )
 from src.synopsis_agent.subagents import (
     drug_label_agent,
     existing_protocol_agent,
-    protocol_sections_agent,
+    synopsis_sections_agent,
 )
 from src.tools import (
     generate_image,
     query_pubmed_articles,
     retrieve_articles_from_qdrant,
     think_tool,
-    write_output,
 )
 
 
@@ -30,11 +32,15 @@ max_concurrent_research_units = 3
 max_researcher_iterations = 3
 current_date = datetime.now().strftime("%Y-%m-%d")
 
+
 synopsis_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/synopsis": StoreBackend(
+        "/memories/synopsis/": StoreBackend(
             namespace=lambda _rt: ("filesystem-synopsis",)
+        ),
+        "/memories/protocol/": StoreBackend(
+            namespace=lambda _rt: ("filesystem-protocol",)
         ),
     },
 )
@@ -43,18 +49,26 @@ synopsis_agent = create_deep_agent(
     name="root_agent",
     model=llm_model,
     system_prompt=ROOT_AGENT_SYSTEM_PROMPT,
-    tools=[write_output, think_tool],
-    subagents=[drug_label_agent, existing_protocol_agent, protocol_sections_agent],
+    tools=[think_tool],
+    subagents=[
+        drug_label_agent,
+        existing_protocol_agent,
+        synopsis_sections_agent,
+        protocol_content_agent,
+    ],
     backend=synopsis_composite_backend,
+    middleware=[SynopsisStatusMiddleware()],
     memory=["/memories/synopsis/AGENTS.md"],
+    skills=["/memories/synopsis/skills", "/memories/protocol/skills"],
 )
 
 synopsis_agent = synopsis_agent.with_config({"recursion_limit": 500})
 
+
 article_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/article": StoreBackend(
+        "/memories/article/": StoreBackend(
             namespace=lambda _rt: ("filesystem-article",)
         ),
     },
@@ -74,7 +88,7 @@ article_agent = article_agent.with_config({"recursion_limit": 500})
 medinfo_composite_backend = CompositeBackend(
     default=StateBackend(),
     routes={
-        "/memories/medinfo": StoreBackend(
+        "/memories/medinfo/": StoreBackend(
             namespace=lambda _rt: ("filesystem-medinfo",)
         ),
     },
