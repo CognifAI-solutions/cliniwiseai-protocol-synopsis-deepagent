@@ -5,4 +5,10 @@ description: Provides instructions to generate the Pharmacokinetic and Statistic
 
 # Generating Pharmacokinetic and Statistical Analysis section.
 
-Add only the title for this sectiona and add empty content for now.
+The information for this section will be provided by the CRO's statistical team. I this information is not provided by the user, generate the section with the Title and add only the following content
+
+```
+To be provided by the Statistical Team
+```
+
+If the user provides the information and wants to generate this section, follow the user's instruction and generate/ regenerate this section.

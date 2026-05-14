@@ -5,12 +5,13 @@ description: Provides instructions to generate the Bioanalytical Procedures sect
 
 # Generating Bioanalytical Procedures section.
 
-Get the brief Bioanalysis section from the protocol synopsis that is available in the file system at the below path.
-- **Protocol Synopsis**: /synopsis/protocol_synopsis.md
+The content for this section is standar and provided by the Bioanalytical site of each CRO. If the user has not provided this data, generate the section title and only add the following statement:
 
-If the Bionalysis section says "To be provided by the Bio-analytical team", the return the same message for this section with only the section's title.
+```
+To be provided by the Bioanalytical site
+```
 
-Otherwise add the actual Analysis from the protocol synopsis at the start of the main section. Then expand on that content to generate the following subsections.
+If the user has provided the necessary information for this section, then expand on that content to generate the following subsections.
 
 - Method Validation
 - Assay of Samples
